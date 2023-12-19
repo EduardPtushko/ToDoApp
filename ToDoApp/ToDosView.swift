@@ -8,23 +8,44 @@
 import SwiftUI
 
 struct ToDosView: View {
-    @State private var toDos: [ToDo] = []
+    @State private var toDoVM = ToDoViewModel()
+    @State private var showingNewTodo = false
+    @Environment(\.dismiss)
+    var dismiss
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(toDos) { todo in
+                ForEach(toDoVM.toDos) { todo in
                     Text(todo.title)
                 }
+                .onDelete(perform: { indexSet in
+                    toDoVM.toDos.remove(atOffsets: indexSet)
+                })
             }
             .listStyle(.inset)
             .navigationTitle("My To-Dos")
             .onAppear {
-                if let savedTodos = ToDo.loadToDos() {
-                    toDos = savedTodos
-                } else {
-                    toDos = ToDo.loadSampleToDos()
+                toDoVM.load()
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    EditButton()
                 }
+                ToolbarItem(placement: .principal) {
+                    Text("")
+                        .bold()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingNewTodo.toggle()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingNewTodo) {
+                NewToDoView()
             }
         }
     }
