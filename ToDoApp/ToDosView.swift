@@ -8,21 +8,34 @@
 import SwiftUI
 
 struct ToDosView: View {
-    @State private var toDoVM = ToDoViewModel()
-    @State private var showingNewTodo = false
     @Environment(\.dismiss)
     var dismiss
+    @State private var toDoVM = ToDoViewModel()
+    @State private var showingNewTodo = false
+    @State private var todoItem: ToDo?
+    @State var editMode: EditMode = .inactive
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(toDoVM.toDos) { todo in
-                    Text(todo.title)
+                ForEach($toDoVM.toDos) { $todo in
+                    Button {
+                        if editMode == .inactive {
+                            todoItem = todo
+                        }
+                    } label: {
+                        HStack {
+                            Toggle("", isOn: $todo.isComplete)
+                                .toggleStyle(CheckboxToggleStyle())
+                            Text(todo.title)
+                        }
+                    }
                 }
                 .onDelete(perform: { indexSet in
                     toDoVM.toDos.remove(atOffsets: indexSet)
                 })
             }
+
             .listStyle(.inset)
             .navigationTitle("My To-Dos")
             .onAppear {
@@ -44,8 +57,14 @@ struct ToDosView: View {
                     }
                 }
             }
+            .environment(\.editMode, $editMode)
             .sheet(isPresented: $showingNewTodo) {
                 NewToDoView()
+                    .environment(toDoVM)
+            }
+            .sheet(item: $todoItem) { todo in
+                NewToDoView(todo: todo)
+                    .environment(toDoVM)
             }
         }
     }

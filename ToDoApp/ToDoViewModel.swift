@@ -9,7 +9,11 @@ import Foundation
 
 @Observable
 final class ToDoViewModel {
-    var toDos: [ToDo] = []
+    var toDos: [ToDo] = [] {
+        didSet {
+            ToDo.saveToDos(toDos)
+        }
+    }
 
     func load() {
         if let savedTodos = ToDo.loadToDos() {
