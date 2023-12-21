@@ -14,11 +14,13 @@ struct ToDosView: View {
     @State private var showingNewTodo = false
     @State private var todoItem: ToDo?
     @State var editMode: EditMode = .inactive
+    @State private var searchText = ""
+    @State private var filteredToDos: [ToDo] = []
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach($toDoVM.toDos) { $todo in
+                ForEach(searchText.isEmpty ? $toDoVM.toDos : $filteredToDos) { $todo in
                     Button {
                         if editMode == .inactive {
                             todoItem = todo
@@ -66,6 +68,10 @@ struct ToDosView: View {
                 NewToDoView(todo: todo)
                     .environment(toDoVM)
             }
+        }
+        .searchable(text: $searchText)
+        .onChange(of: searchText) { _, _ in
+            filteredToDos = toDoVM.toDos.filter { $0.title.hasPrefix(searchText) }
         }
     }
 }
